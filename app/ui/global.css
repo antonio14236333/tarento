@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'bulma/css/bulma.min.css';
+
 
 input[type='number'] {
   -moz-appearance: textfield;
