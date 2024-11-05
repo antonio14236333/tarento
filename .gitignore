@@ -14,6 +14,7 @@ pnpm-debug.log*
 # Configuración local de módulos de Node
 .env.local
 .env.*.local
+.env
 
 # Archivos de configuraciones del editor
 .vscode/

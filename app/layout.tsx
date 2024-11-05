@@ -12,7 +12,7 @@ export default function RootLayout({
       <head>
         <title>Tarento</title>
       </head>
-      <body className={`${montserrat.className} antialiased`}>
+      <body className={`${montserrat.className} antialiased has-navbar-fixed-top`}>
         
         <Header/>
         {children}

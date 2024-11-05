@@ -16,3 +16,22 @@ input[type='number']::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+
+:root {
+  --bulma-primary-h: 218deg;
+  --bulma-primary-s: 42%;
+  --bulma-primary-l: 18%;
+  --bulma-link-h: 210deg;
+  --bulma-link-s: 24%;
+  --bulma-link-l: 38%;
+  --bulma-info-h: 218deg;
+  --bulma-info-s: 22%;
+  --bulma-info-l: 83%;
+  --bulma-warning-l: 70%;
+  --bulma-danger-h: 3deg;
+  --bulma-danger-s: 86%;
+  --bulma-danger-l: 64%;
+  --bulma-family-primary: Roboto;
+  --bulma-navbar-height: 6rem;
+  --bulma-navbar-item-img-max-height: 6rem;
+}

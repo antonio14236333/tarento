@@ -54,7 +54,7 @@
 
 export default function LandingPage() {
   return (
-    <section className="hero is-primary is-fullheight">
+    <section className="hero is-info is-fullheight">
       <div className="hero-body">
         <div className="container">
           <h1 className="title">Welcome to the Talent Platform</h1>
