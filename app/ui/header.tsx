@@ -19,7 +19,7 @@ export default function Header() {
 
   <nav className="navbar is-fixed-top is-transparen" role="navigation" aria-label="main navigation">
   <div className="navbar-brand">
-    <a className="navbar-item logo" href="https://bulma.io">
+    <a className="navbar-item logo" href="/">
     <Image
       src="/logo.png"
       width={60}
@@ -46,12 +46,8 @@ export default function Header() {
         <a className="navbar-link" href=""> Student </a>
         <div className="navbar-dropdown">
           <a className="navbar-item" href=""> Profile </a>
-          <a className="navbar-item" href="">  </a>
-          <a className="navbar-item" href=""> Columns </a>
-          <a className="navbar-item" href=""> Layout </a>
-          <a className="navbar-item" href=""> Form </a>
+          <a className="navbar-item" href=""> Jobs </a>
           <hr className="navbar-divider"/>
-          <a className="navbar-item" href=""> Elements </a>
           <a className="navbar-item is-danger" href=""> Log Out </a>
         </div>
       </div>
@@ -60,10 +56,10 @@ export default function Header() {
     <div className="navbar-end">
       <div className="navbar-item">
         <div className="buttons">
-          <a className="button is-success">
+          <a className="button is-success" href="/students/register">
             <strong>Sign up</strong>
           </a>
-          <a className="button is-light">
+          <a className="button is-light" href="/authentication/login">
             Log in
           </a>
         </div>
