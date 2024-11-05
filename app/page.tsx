@@ -52,6 +52,10 @@
 //   );
 // }
 
+'use client'
+
+import { createPost } from '@/lib/post';
+
 export default function LandingPage() {
   return (
     <section className="hero is-info is-fullheight">
@@ -60,7 +64,9 @@ export default function LandingPage() {
           <h1 className="title">Welcome to the Talent Platform</h1>
           <h2 className="subtitle">Connect with the best candidates and job opportunities</h2>
           <div className="buttons">
-            <button className="button is-link">Find Jobs</button>
+            <button className="button is-link" onClick={async () => {
+              await createPost();
+            }}>Find Jobs</button>
             <button className="button is-info">Search Candidates</button>
           </div>
         </div>
