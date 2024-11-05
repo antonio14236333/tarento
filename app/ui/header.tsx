@@ -45,8 +45,8 @@ export default function Header() {
       <div className="navbar-item has-dropdown is-hoverable">
         <a className="navbar-link" href=""> Student </a>
         <div className="navbar-dropdown">
-          <a className="navbar-item" href=""> Profile </a>
-          <a className="navbar-item" href=""> Jobs </a>
+          <a className="navbar-item" href="/students/profile"> Profile </a>
+          <a className="navbar-item" href="/students/job-search"> Jobs </a>
           <hr className="navbar-divider"/>
           <a className="navbar-item is-danger" href=""> Log Out </a>
         </div>
