@@ -1,19 +1,23 @@
-import { getSession } from 'next-auth/client';
-import { NextApiRequest, NextApiResponse, NextApiHandler } from 'next';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import jwt from 'jsonwebtoken';
 
-export function authMiddleware(handler: NextApiHandler, allowedRoles: string[]) {
-  return async (req: NextApiRequest, res: NextApiResponse) => {
-    const session = await getSession({ req });
+export function middleware(req: NextRequest) {
+  const token = req.cookies.get('token')?.value;
 
-    if (!session) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
+  if (!token) {
+    return NextResponse.redirect(new URL('/authentication/login', req.url));
+  }
 
-    if (!allowedRoles.includes(session.user.role)) {
-      return res.status(403).json({ error: 'Forbidden' });
-    }
-
-    req.user = session.user;
-    return handler(req, res);
-  };
+  try {
+    jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret');
+    return NextResponse.next();
+  } catch (error) {
+    return NextResponse.redirect(new URL('/authentication/login', req.url));
+  }
 }
+
+// Especifica las rutas protegidas
+export const config = {
+  matcher: ['/students/profile/:path*', '/employers/:path*'], // Rutas que deseas proteger
+};

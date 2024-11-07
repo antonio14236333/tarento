@@ -1,6 +1,5 @@
 import { PrismaClient } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
-import { authMiddleware } from '../../../middleware/auth';
 
 const prisma = new PrismaClient();
 
@@ -16,7 +15,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           companyName,
           industry,
           location,
-          profileStatus,
         },
       });
       res.status(201).json(newEmployer);
@@ -28,5 +26,3 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     res.status(405).json({ error: "Method not allowed" });
   }
 }
-
-export default authMiddleware(handler, ['employer']);

@@ -1,15 +1,35 @@
-export default function StudentProfilePage() {
-    return (
-      <section className="section">
-        <div className="container">
-          <h1 className="title">Student Profile</h1>
-          <div className="box">
-            <p><strong>Name:</strong> John Doe</p>
-            <p><strong>Email:</strong> johndoe@example.com</p>
-            <p><strong>Skills:</strong> JavaScript, React, Node.js</p>
-          </div>
-        </div>
-      </section>
-    );
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import jwt from 'jsonwebtoken';
+
+export default function ProfilePage() {
+  console.log('ProfilePage');
+  if (typeof window !== 'undefined') {
+    console.log(localStorage.getItem('token'));
   }
-  
+
+  const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      console.log(localStorage.getItem('token'));
+      console.log(token);
+
+      if (!token) {
+        router.push('/authentication/login');
+        return;
+      }
+
+    }
+  }, [router]);
+
+  return (
+    <div>
+      <h1>Student Profile</h1>
+      {/* Contenido de la página */}
+    </div>
+  );
+}
