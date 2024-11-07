@@ -58,10 +58,16 @@ model Employer {
   @@map("employers")
 }
 
+// Hola compadre, este codigo solo yo y dios sabemos que hace
+// pero si funciona no lo toques, gracias
+
+// btw, el fileUrl es opcional, pero si tienes que escalarlo tienes que usar multer 
+
 model Resume {
   id            String    @id @default(uuid())
   studentId     String
-  fileUrl       String
+  fileUrl       String?
+  pdf           Bytes 
   extractedData Json?     
   parsedSkills  Json?     
   parsedExperience Json?  

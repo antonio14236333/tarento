@@ -29,3 +29,7 @@ Thumbs.db
 *.log
 *.swp
 *.swo
+
+
+# para regenerar prisma tiene que ser 
+# npx prisma db push
