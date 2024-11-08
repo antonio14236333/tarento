@@ -1,42 +1,36 @@
-'use client'
+'use client';
+// Tenle respeto a este archivo
+
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: username, password }),
-      });
+    const result = await signIn('credentials', {
+      redirect: false,
+      email: username,
+      password,
+    });
 
-      const data = await response.json();
+    if (result?.error) {
+      setError(result.error);
+      alert('Error de inicio de sesión: ' + result.error);
+    } else {
+      console.log('Inicio de sesión exitoso');
 
-      if (response.ok) {
-        localStorage.setItem('token', data.token);
-
-        console.log('estoy dentro madafaka');
-
-
-        if (data.role === 'employer') {
-          router.push('/employers/profile');
-        } else {
-          router.push('/students/profile');
-        }
-      } else {
-        alert(data.message || 'Error logging in');
+      if (result && result.ok) {
+        
+        router.push('/students/profile');
       }
-    } catch (error) {
-      console.error('Error logging in:', error);
-      alert('An error occurred while logging in');
     }
   };
 
@@ -71,6 +65,7 @@ export default function LoginPage() {
               />
             </div>
           </div>
+          {error && <p className="has-text-danger">{error}</p>}
           <div className="field is-grouped">
             <div className="control">
               <button type="submit" className="button is-link">Login</button>
