@@ -13,9 +13,8 @@ export const authOptions = {
       async authorize(credentials) {
         if (!credentials) return null;
 
-        // Verifica si las credenciales coinciden con las hardcodeadas
+        
         if (credentials.email === 'antonio.gonzalez@justia.com' && credentials.password === 'testeo') {
-          // Devuelve un objeto de usuario simulado
           return {
             id: '12345',
             email: 'antonio.gonzalez@justia.com',
