@@ -2,6 +2,20 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Mic, Square } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { PrismaClient } from '@prisma/client';
+
+
+
+// const profile: StudentProfile = {
+//   fullName,
+//   educationLevel,
+//   careerStatus,
+//   skills: skills || [],
+//   experience: experience || [],
+//   education: education || [],
+//   location
+// };
 
 interface StudentProfile {
   fullName?: string;
@@ -32,7 +46,7 @@ export default function AnimatedVoiceChat() {
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [animationState, setAnimationState] = useState('normal');
-  const [profile, setProfile] = useState<StudentProfile>({});
+  var [profile, setProfile] = useState<StudentProfile>({});
   const [isFirstMessage, setIsFirstMessage] = useState(true);
   const [hasStarted, setHasStarted] = useState(false);
   
@@ -40,7 +54,15 @@ export default function AnimatedVoiceChat() {
   const audioChunksRef = useRef<Blob[]>([]);
   const typingSpeedRef = useRef(50);
 
-  // Efecto de escritura
+  
+
+  async function fetchProfile() {
+    const response = await fetch(`/api/user`);
+    profile = await response.json();
+  }
+
+
+  // Efecto de escritura 
   useEffect(() => {
     if (response && !isTyping) {
       setIsTyping(true);
@@ -61,11 +83,18 @@ export default function AnimatedVoiceChat() {
     }
   }, [response]);
 
-  const startInitialInteraction = () => {
+  const startInitialInteraction =  () => {
     setHasStarted(true);
-    const welcomeMessage = '¡Bienvenido! Soy Kira, tu asistente virtual inteligente. Estoy aquí para ayudarte y conversar contigo. ¿En qué puedo ayudarte hoy?';
-    setResponse(welcomeMessage);
+    const welcomeMessage = '¡Bienvenido! Soy Kira, tu asistente virtual inteligente. Estoy aquí para ayudarte y conversar contigo para realizar tu perfil como talento. ¿Estás listo para comenzar?';
+    
     playTTS(welcomeMessage);
+    // Pueden criticar mis metodos, pero no mi estilo
+    // El PRI robo mas
+    setTimeout(() => {
+      setResponse(welcomeMessage);
+    }, 3500);
+   
+    // De tu envidia alimento mi ego jiji
   };
 
   const playTTS = async (text: string) => {
@@ -146,16 +175,18 @@ export default function AnimatedVoiceChat() {
       setIsRecording(false);
     }
   }, [isRecording]);
-
   const processAudio = async (recordedAudio: Blob) => {
     try {
       setIsLoading(true);
       setError('');
 
       const formData = new FormData();
+      fetchProfile();
+      console.log(JSON.stringify(JSON.parse(profile as string)));
       formData.append('audio', recordedAudio);
       formData.append('profile', JSON.stringify(profile));
       formData.append('isFirstMessage', String(isFirstMessage));
+      
 
       const response = await fetch('/api/speech/', {
         method: 'POST',

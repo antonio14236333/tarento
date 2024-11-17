@@ -45,6 +45,8 @@ export async function POST(req: Request) {
     const currentProfile = formData.get('profile');
     const isFirstMessage = formData.get('isFirstMessage') === 'true';
 
+    console.log('currentProfile', currentProfile);
+
     if (!audioFile || !(audioFile instanceof Blob)) {
       return NextResponse.json(
         { error: 'No se proporcionó un archivo de audio válido' },
@@ -85,8 +87,10 @@ Estado actual del perfil:
 ${currentProfile ? JSON.stringify(JSON.parse(currentProfile as string), null, 2) : "Perfil vacío"}`;
 
     if (isFirstMessage) {
-      systemPrompt += '\nEste es el primer mensaje. Da la bienvenida y comienza la entrevista.';
+      systemPrompt += '¡Bienvenido! Soy Kiro, tu asistente virtual inteligente. Estoy aquí para ayudarte y conversar contigo para realizar tu perfil como talento. ¿Estás listo para comenzar?';
     }
+
+    
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
@@ -100,7 +104,7 @@ ${currentProfile ? JSON.stringify(JSON.parse(currentProfile as string), null, 2)
 
     const mp3 = await openai.audio.speech.create({
       model: 'tts-1',
-      voice: 'alloy',
+      voice: 'nova',
       input: responseText || ''
     });
 
