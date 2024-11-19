@@ -2,20 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Mic, Square } from 'lucide-react';
-import { useSession } from 'next-auth/react';
-import { PrismaClient } from '@prisma/client';
-
-
-
-// const profile: StudentProfile = {
-//   fullName,
-//   educationLevel,
-//   careerStatus,
-//   skills: skills || [],
-//   experience: experience || [],
-//   education: education || [],
-//   location
-// };
+import { useRouter } from 'next/navigation';
 
 interface StudentProfile {
   fullName?: string;
@@ -45,24 +32,28 @@ export default function AnimatedVoiceChat() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  const [animationState, setAnimationState] = useState('normal');
-  var [profile, setProfile] = useState<StudentProfile>({});
+  const [profile, setProfile] = useState<StudentProfile>({});
   const [isFirstMessage, setIsFirstMessage] = useState(true);
   const [hasStarted, setHasStarted] = useState(false);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const typingSpeedRef = useRef(50);
+  const router = useRouter();
 
-  
+  const getCircleClassName = useCallback((index: number) => {
+    const baseClass = 'circle';
+    if (isRecording) return `${baseClass} recording`;
+    if (isTyping) return `${baseClass} talking`;
+    return baseClass;
+  }, [isRecording, isTyping]);
 
   async function fetchProfile() {
     const response = await fetch(`/api/user`);
-    profile = await response.json();
+    const newProfile = await response.json();
+    setProfile(newProfile);
   }
 
-
-  // Efecto de escritura 
   useEffect(() => {
     if (response && !isTyping) {
       setIsTyping(true);
@@ -83,18 +74,13 @@ export default function AnimatedVoiceChat() {
     }
   }, [response]);
 
-  const startInitialInteraction =  () => {
+  const startInitialInteraction = () => {
     setHasStarted(true);
     const welcomeMessage = '¡Bienvenido! Soy Kira, tu asistente virtual inteligente. Estoy aquí para ayudarte y conversar contigo para realizar tu perfil como talento. ¿Estás listo para comenzar?';
-    
     playTTS(welcomeMessage);
-    // Pueden criticar mis metodos, pero no mi estilo
-    // El PRI robo mas
     setTimeout(() => {
       setResponse(welcomeMessage);
     }, 3500);
-   
-    // De tu envidia alimento mi ego jiji
   };
 
   const playTTS = async (text: string) => {
@@ -125,7 +111,7 @@ export default function AnimatedVoiceChat() {
   
       URL.revokeObjectURL(audioUrl);
     } catch (err) {
-      console.log('Error en la síntesis de voz:', err);
+      console.error('Error en la síntesis de voz:', err);
     }
   };
 
@@ -175,18 +161,17 @@ export default function AnimatedVoiceChat() {
       setIsRecording(false);
     }
   }, [isRecording]);
+
   const processAudio = async (recordedAudio: Blob) => {
     try {
       setIsLoading(true);
       setError('');
 
       const formData = new FormData();
-      fetchProfile();
-      console.log(JSON.stringify(JSON.parse(profile as string)));
+      await fetchProfile();
       formData.append('audio', recordedAudio);
       formData.append('profile', JSON.stringify(profile));
       formData.append('isFirstMessage', String(isFirstMessage));
-      
 
       const response = await fetch('/api/speech/', {
         method: 'POST',
@@ -202,22 +187,30 @@ export default function AnimatedVoiceChat() {
       if (data.error) {
         throw new Error(data.error);
       }
-
-      setTranscription(data.transcription);
-      setResponse(data.response);
-      setIsFirstMessage(false);
-
       
-      if (data.updatedProfile) {
-        setProfile(data.updatedProfile);
+      if (data.response === "Tu perfil ha sido actualizado exitosamente. En unos segundos te mostraremos el mejor trabajo para ti.") {
+        playTTS(data.response);
+        
+        setTimeout(() => {
+          setResponse(data.response);
+        }, 3500);
+
+        router.push('/students/job-search');
+      } else {
+        setTranscription(data.transcription);
+        setResponse(data.response);
+        setIsFirstMessage(false);
+  
+        if (data.updatedProfile) {
+          setProfile(data.updatedProfile);
+        }
+  
+        const audioBuffer = new Uint8Array(data.audioBuffer);
+        const audioBlob = new Blob([audioBuffer], { type: 'audio/mp3' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        await audio.play();
       }
-
-      
-      const audioBuffer = new Uint8Array(data.audioBuffer);
-      const audioBlob = new Blob([audioBuffer], { type: 'audio/mp3' });
-      const audioUrl = URL.createObjectURL(audioBlob);
-      const audio = new Audio(audioUrl);
-      await audio.play();
 
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Error al procesar la solicitud');
@@ -242,9 +235,13 @@ export default function AnimatedVoiceChat() {
     <div className="bg-black min-h-screen flex flex-col items-center justify-center p-4">
       <div className="parent mb-8">
         {[...Array(5)].map((_, index) => (
-          <div key={index} className={`circle ${animationState}`} style={{
-            animationDelay: `${-index * 0.8}s`
-          }} />
+          <div
+            key={index}
+            className={getCircleClassName(index)}
+            style={{
+              animationDelay: `${-index * 0.8}s`
+            }}
+          />
         ))}
       </div>
 

@@ -66,14 +66,14 @@ export default function InterviewPage(): JSX.Element {
     formData.append('audioFile', audioBlob);
 
     try {
-      // Transcribir audio
+      
       const transcriptionResponse = await fetch('/api/transcribe', {
         method: 'POST',
         body: formData
       });
       const { text } = await transcriptionResponse.json();
 
-      // Obtener respuesta de ChatGPT
+      
       const chatResponse = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -88,7 +88,7 @@ export default function InterviewPage(): JSX.Element {
         response as Message
       ]);
 
-      // Reproducir respuesta como audio
+      
       setAnimationState('talking');
       const ttsResponse = await fetch('/api/tts', {
         method: 'POST',
@@ -138,7 +138,7 @@ export default function InterviewPage(): JSX.Element {
         </button>
       </div>
 
-      {/* Historial de mensajes */}
+
       <div className="mt-8 w-full max-w-2xl px-4 space-y-4 max-h-60 overflow-y-auto">
         {messages.slice(1).map((message, index) => (
           <div 
