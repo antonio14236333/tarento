@@ -4,7 +4,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
+import { signIn, getSession } from 'next-auth/react';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -29,11 +29,15 @@ export default function LoginPage() {
       setError(result.error);
       alert('Error de inicio de sesión: ' + result.error);
     } else {
-      console.log('Inicio de sesión exitoso');
+      console.log('Inicio de sesión exitoso');  
+      if (result?.ok) {
+        const session = await getSession();
+        if (session?.user?.role == 'student') {
+          router.push('/students/profile');
 
-      if (result && result.ok) {
-        
-        router.push('/students/profile');
+        } else if (session?.user?.role == 'employer') {
+          router.push('/employers/profile');
+        }
       }
     }
   };

@@ -10,6 +10,7 @@ import '@/app/ui/header.css';
 export default function Header() {
   const [isActive, setIsActive] = useState(false);
   const { data: session } = useSession(); // Hook para obtener la sesión actual
+  const userRole = session?.user?.role;
 
   // Manejador de clic para alternar el estado
   const toggleBurger = () => {
@@ -46,17 +47,29 @@ export default function Header() {
       <div className={`navbar-menu ${isActive ? 'is-active' : ''}`}>
         <div className="navbar-start">
           <Link href="/" className="navbar-item">Home</Link>
-          <div className="navbar-item has-dropdown is-hoverable">
-            <Link href="#" className="navbar-link">Student</Link>
-            <div className="navbar-dropdown">
-              <Link href="/students/profile" className="navbar-item">Profile</Link>
-              <Link href="/students/job-search" className="navbar-item">Jobs</Link>
-              <hr className="navbar-divider" />
-              {session ? (
-                <a className="navbar-item is-danger" onClick={() => signOut()}>Log Out</a>
-              ) : null}
+            {userRole === 'student' ? (
+            <div className="navbar-item has-dropdown is-hoverable">
+              <Link href="#" className="navbar-link">Student</Link>
+              <div className="navbar-dropdown">
+                <Link href="/students/profile" className="navbar-item">Profile</Link>
+                <hr className="navbar-divider" />
+                {session ? (
+                  <a className="navbar-item is-danger" onClick={() => signOut()}>Log Out</a>
+                ) : null}
+              </div>
             </div>
-          </div>
+          ) : userRole === 'employer' ? (
+            <div className="navbar-item has-dropdown is-hoverable">
+              <Link href="#" className="navbar-link">Employer</Link>
+              <div className="navbar-dropdown">
+                <Link href="/employers/profile" className="navbar-item">Company Profile</Link>
+                <hr className="navbar-divider" />
+                {session ? (
+                  <a className="navbar-item is-danger" onClick={() => signOut()}>Log Out</a>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <div className="navbar-end">
@@ -65,7 +78,10 @@ export default function Header() {
               {!session ? (
                 <>
                   <Link href="/students/register" className="button is-success">
-                    <strong>Sign up</strong>
+                    <strong>Student Sign Up</strong>
+                  </Link>
+                  <Link href="/employers/register" className="button is-success">
+                    <strong>Employer Sign up</strong>
                   </Link>
                   <Link href="/authentication/login" className="button is-light">Log in</Link>
                 </>

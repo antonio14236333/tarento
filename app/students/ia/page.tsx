@@ -85,14 +85,14 @@ export default function AnimatedVoiceChat() {
 
   const startInitialInteraction =  () => {
     setHasStarted(true);
-    const welcomeMessage = '¡Bienvenido! Soy Kira, tu asistente virtual inteligente. Estoy aquí para ayudarte y conversar contigo para realizar tu perfil como talento. ¿Estás listo para comenzar?';
+    // const welcomeMessage = '¡Bienvenido! Soy Kira, tu asistente virtual inteligente. Estoy aquí para ayudarte y conversar contigo para realizar tu perfil como talento. ¿Estás listo para comenzar?';
     
-    playTTS(welcomeMessage);
-    // Pueden criticar mis metodos, pero no mi estilo
-    // El PRI robo mas
-    setTimeout(() => {
-      setResponse(welcomeMessage);
-    }, 3500);
+    // playTTS(welcomeMessage);
+    // // Pueden criticar mis metodos, pero no mi estilo
+    // // El PRI robo mas
+    // setTimeout(() => {
+    //   setResponse(welcomeMessage);
+    // }, 3500);
    
     // De tu envidia alimento mi ego jiji
   };

@@ -5,7 +5,7 @@
 
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -13,34 +13,6 @@ const openai = new OpenAI({
 
 const history: { transcription: string; responseText: string; }[] = [];
 
-interface Skill {
-  name: string;
-  level: string;
-}
-
-interface Experience {
-  company: string;
-  position: string;
-  duration: string;
-  description: string;
-}
-
-interface Education {
-  institution: string;
-  degree: string;
-  field: string;
-  graduationYear: string;
-}
-
-interface ProfileResponse {
-  fullName: string;
-  educationLevel: string;
-  careerStatus: string;
-  skills: Skill[];
-  experience: Experience[];
-  education: Education[];
-  location?: string;
-}
 
 export async function POST(req: Request) {
   if (!process.env.OPENAI_API_KEY) {
@@ -53,13 +25,9 @@ export async function POST(req: Request) {
   try {
     const formData = await req.formData();
     const audioFile = formData.get('audio');
-    const isFirstMessage = formData.get('isFirstMessage') === 'true';
 
-    const currentProfile = JSON.parse(formData.get('profile') as string) as ProfileResponse;
  
-    console.log(formData.get('profile'));
-    console.log(currentProfile);
-    console.log(currentProfile.fullName);
+    
 
     if (!audioFile || !(audioFile instanceof Blob)) {
       return NextResponse.json(
@@ -79,8 +47,11 @@ export async function POST(req: Request) {
     });
 
     const systemPrompt = `
- Eres Kero, un asistente de IA especializado en entrevistas laborales. Tu objetivo es crear un perfil profesional preciso en formato JSON basándote en las respuestas del entrevistado. Realiza preguntas detalladas para obtener la información necesaria y completa el siguiente JSON:
+Eres Kero, un asistente de IA especializado en entrevistas laborales. Tu objetivo es crear un perfil profesional completo y preciso en formato JSON basado en las respuestas del entrevistado. Realiza preguntas claras, específicas y solo una vez, siguiendo un orden lógico y natural. No repitas preguntas ni insistas, pero verifica si alguna respuesta no es clara o está incompleta para pedir detalles adicionales. Usa siempre un tono amigable y profesional. Todas las preguntas, respuestas y el JSON deben ser exclusivamente en español. Al finalizar, genera el JSON sin comentarios ni explicaciones adicionales.
 
+Formato JSON esperado:
+json
+Copiar código
 {
   "fullName": "string",
   "educationLevel": "string",
@@ -100,47 +71,60 @@ export async function POST(req: Request) {
   }],
   "location": "string"
 }
-
-
-
-Cuando termines de recopilar toda la información, genera un JSON con los datos proporcionados. No añadas comentarios ni explicaciones al final, solo devuelve el JSON completo con los datos recopilados.
-estes es un ejemplo de como se veria el json final:
-
-
-
-
+Estrategia de entrevista:
+Haz las preguntas siguiendo un flujo natural, como si fuera una conversación laboral.
+Pregunta una sola vez cada tema, evitando repeticiones innecesarias.
+Si una respuesta es ambigua o incompleta, solicita únicamente las aclaraciones necesarias.
+Genera el JSON con la información recopilada al final de la entrevista, sin agregar texto adicional.
+Preguntas (en español):
+Inicio: "Hola, gracias por estar aquí. Para comenzar, ¿me podrías decir tu nombre completo?"
+Educación: "¿Cuál es tu nivel educativo más alto? Por ejemplo: Primaria, Secundaria, Preparatoria o Universidad."
+Situación profesional: "¿Cuál es tu situación profesional actual? ¿Estás empleado, buscando trabajo o eres estudiante?"
+Habilidades: "Hablemos ahora de tus habilidades. ¿Qué habilidades destacadas tienes y cómo calificarías tu nivel en cada una? Por ejemplo: 'Liderazgo - Intermedio' o 'Programación - Avanzado'."
+Experiencia laboral: "¿Puedes contarme sobre tu experiencia laboral? Incluye el nombre de la empresa, tu cargo, la duración y una breve descripción de tus actividades."
+Historial educativo: "Sobre tu formación académica, ¿podrías darme más detalles? Como el nombre de la institución, el grado académico, el campo de estudio y el año de graduación."
+Residencia: "Por último, ¿en dónde resides actualmente? Por favor, indica ciudad y país."
+Ejemplo de JSON final:
+json
+Copiar código
 {
-  "fullName": "Antonio Gonzalez",
+  "fullName": "Antonio González",
   "educationLevel": "Universidad (en curso)",
-  "careerStatus": "Intern de Justicia",
+  "careerStatus": "Empleado",
   "skills": [
     {
       "name": "Liderazgo",
-      "level": "Experto"
+      "level": "Intermedio"
+    },
+    {
+      "name": "Programación",
+      "level": "Avanzado"
     }
   ],
   "experience": [
     {
-      "company": "Justicia",
-      "position": "Intern",
-      "duration": "Actualidad",
-      "description": "Trabajo como intern en el departamento de Justicia"
+      "company": "ABC Corp",
+      "position": "Desarrollador de Software",
+      "duration": "2 años",
+      "description": "Diseño y desarrollo de aplicaciones web"
     }
   ],
   "education": [
     {
-      "institution": "Universidad Autónoma de Zacatecas",
-      "degree": "Ingeniería de Software",
-      "field": "Software",
-      "graduationYear": "En curso"
+      "institution": "Universidad Nacional",
+      "degree": "Licenciatura",
+      "field": "Ingeniería en Sistemas",
+      "graduationYear": "2023"
     }
   ],
-  "location": "Osaka, Japón"
+  "location": "Ciudad de México, México"
 }
-para cerrar la conversacoin solo imprime el json sin decir nada y sin agradecer
-    `;
-
-console.log(history);
+Reglas finales:
+Realiza las preguntas una sola vez, en orden, con un tono amigable y natural.
+Si es necesario, aclara únicamente los puntos que no sean claros o estén incompletos.
+Al finalizar, genera el JSON en el formato exacto, sin texto adicional.
+No agradezcas ni cierres la conversación, solo imprime el JSON.
+ `;
 
 
     const completion = await openai.chat.completions.create({
@@ -148,6 +132,7 @@ console.log(history);
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'assistant', content: "¡Bienvenido! Soy Kira, tu asistente virtual inteligente. Estoy aquí para ayudarte y conversar contigo para realizar tu perfil como talento. ¿Estás listo para comenzar?" },
+        { role: 'user', content: transcription },
         ...history.flatMap(({ transcription, responseText }) => [
           { role: 'user' as const, content: transcription },
           { role: 'assistant' as const, content: responseText }
@@ -155,37 +140,89 @@ console.log(history);
       ]
     });
 
+    
+for (const entry of history) {
+  console.log(`{role: 'user', content: ${entry.transcription}}`);
+  console.log(`{role: 'assistant', content: ${entry.responseText}}`);
+}
+
+
     const responseText = completion.choices[0].message.content;
 
+//       const responseText = `
+//       {
+//   "fullName": "No proporcionado",
+//   "educationLevel": "Universidad (en curso)",
+//   "careerStatus": "Practicante profesional",
+//   "skills": [
+//     {
+//       "name": "Desarrollo web",
+//       "level": "Avanzado"
+//     },
+//     {
+//       "name": "Django",
+//       "level": "Avanzado"
+//     },
+//     {
+//       "name": "Byte",
+//       "level": "Avanzado"
+//     },
+//     {
+//       "name": "Next.js",
+//       "level": "Avanzado"
+//     },
+//     {
+//       "name": "Frontera",
+//       "level": "Avanzado"
+//     },
+//     {
+//       "name": "Balcón",
+//       "level": "Avanzado"
+//     }
+//   ],
+//   "experience": [
+//     {
+//       "company": "Justia",
+//       "position": "Practicante",
+//       "duration": "Desde septiembre de 2022",
+//       "description": "Creación de Landing Pages."
+//     }
+//   ],
+//   "education": [
+//     {
+//       "institution": "Universidad Autónoma de Zacatecas",
+//       "degree": "Ingeniería de Software",
+//       "field": "Software",
+//       "graduationYear": "2026"
+//     }
+//   ],
+//   "location": "Osaka, Japón"
+// }
+//       `;
+      
+//        const transcription = '';
 
     if (responseText && responseText.trim().startsWith('{')) {
       // Intentar parsear la respuesta como JSON
       try {
 
         console.log(JSON.parse(responseText));
-        const updatedProfile = JSON.parse(responseText) as ProfileResponse;
+        const updatedProfile = JSON.parse(responseText);
 
         console.log("Aqui estoy subiendo la data a la db");
 
-        const prisma = new PrismaClient();
 
-        const response = await fetch(`/api/user`);
+        const response = await fetch(`/api/students`);
         const profile = await response.json();
 
-        // await prisma.student.update({
-        //   where: { id: profile.id },
-        //   data: { 
-        //     fullName: updatedProfile.fullName,      
-        //     educationLevel: updatedProfile.educationLevel,
-        //     careerStatus: updatedProfile.careerStatus,
-        //     skills: updatedProfile.skills,                
-        //     experience: updatedProfile.experience,             
-        //     education: updatedProfile.education,
-        //     location: updatedProfile.location,      
-        //     profileStatus: 'COMPLETE'   
-        //   },
 
-        // });
+
+        const updateProfile = await fetch(`/api/students`, {
+          method: 'PATCH',
+          body: JSON.parse(responseText),
+        });
+
+        console.log("Aqui estoy subiendo la data a la db");
 
 
         // Actualizar la base de datos con updatedProfile

@@ -8,11 +8,11 @@ export default function RegisterPage() {
     passwordHash: '',
     educationLevel: '',
     careerStatus: '',
-    skills: {},
-    experience: {},
-    education: {},
+    skills: null, 
+    experience: null, 
+    education: null, 
     location: '',
-    profileStatus: 'INCOMPLETE'
+    profileStatus: 'INCOMPLETE',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -26,13 +26,13 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/students/register', {
+      const response = await fetch('/api/students', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
-      if (response.ok) {
+      if (response.status === 201) {
         const data = await response.json();
         alert("Student registered successfully!");
       } else {
@@ -40,7 +40,6 @@ export default function RegisterPage() {
         alert("Error: " + errorData.error);
       }
     } catch (error) {
-      console.error("Error registering student:", error);
       alert("There was an error with registration.");
     }
   };

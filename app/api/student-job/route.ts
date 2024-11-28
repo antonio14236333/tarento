@@ -1,8 +1,13 @@
-import { NextResponse } from 'next/server';
+import {  NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getSession } from 'next-auth/react';
+import OpenAI from "openai";
 
 const prisma = new PrismaClient();
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY
+  });
+  
 
 interface Skill {
   name: string;
@@ -33,6 +38,8 @@ interface ProfileResponse {
   location?: string;
 }
 
+
+
 export async function GET(request: Request) {
   try {
     const session = await getSession({ req: { headers: Object.fromEntries(request.headers) } });
@@ -46,16 +53,7 @@ export async function GET(request: Request) {
     const user = await prisma.student.findUnique({
       where: {
         id: userId,
-      },
-      select: {
-        fullName: true,
-        educationLevel: true,
-        careerStatus: true,
-        skills: true,
-        experience: true,
-        education: true,
-        location: true,
-      },
+      }
     });
 
     if (!user) {
@@ -65,17 +63,35 @@ export async function GET(request: Request) {
     
     const profileData: ProfileResponse = {
       fullName: user.fullName,
-      educationLevel: user.educationLevel,
-      careerStatus: user.careerStatus,
+      educationLevel: user.educationLevel || '',
+      careerStatus: user.careerStatus || '',
       location: user.location || undefined,
-      
       skills: user.skills ? (JSON.parse(JSON.stringify(user.skills)) as Skill[]) : [],
       experience: user.experience ? (JSON.parse(JSON.stringify(user.experience)) as Experience[]) : [],
       education: JSON.parse(JSON.stringify(user.education)) as Education[],
     };
 
+    const jobs = await prisma.job.findMany();
+
+    console.log(profileData);
+    console.log(jobs);
+
+    const ranking = await openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          { role: 'system', content: "Por favor, procesa el siguiente perfil de estudiante (en formato JSON) y la lista de trabajos disponibles (también en formato JSON). Ordena la lista de trabajos según el mejor ajuste con el perfil del estudiante. Es importante que solo me devuelvas el JSON de los trabajos ordenados y nada más, sin comentarios adicionales." },
+          { role: 'user', content: JSON.stringify(profileData) },
+          { role: 'user', content: JSON.stringify(jobs) },
+        ]
+      });
+
+      const content = ranking.choices[0].message.content;
+      if (!content) {
+        throw new Error('OpenAI response content is null');
+      }
+      const resultRanking = JSON.parse(content); 
     
-    return new NextResponse(JSON.stringify(profileData), {
+    return new NextResponse(resultRanking, {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
@@ -90,3 +106,4 @@ export async function GET(request: Request) {
     );
   }
 }
+

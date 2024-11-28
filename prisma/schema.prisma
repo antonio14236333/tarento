@@ -20,11 +20,11 @@ model Student {
   email         String         @unique
   passwordHash  String
   fullName      String
-  educationLevel String
-  careerStatus  String
+  educationLevel String?
+  careerStatus  String?
   skills        Json?         
   experience    Json?         
-  education     Json        
+  education     Json?        
   location      String?
   createdAt     DateTime      @default(now())
   lastActive    DateTime      @updatedAt
@@ -58,28 +58,6 @@ model Employer {
   @@map("employers")
 }
 
-// Hola compadre, este codigo solo yo y dios sabemos que hace
-// pero si funciona no lo toques, gracias
-
-// btw, el fileUrl es opcional, pero si tienes que escalarlo tienes que usar multer 
-
-model Resume {
-  id            String    @id @default(uuid())
-  studentId     String
-  fileUrl       String?
-  pdf           Bytes 
-  extractedData Json?     
-  parsedSkills  Json?     
-  parsedExperience Json?  
-  parsedEducation Json?   
-  uploadedAt    DateTime  @default(now())
-  processed     Boolean   @default(false)
-  
-
-  student       Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
-
-  @@map("resumes")
-}
 
 model Job {
   id              String    @id @default(uuid())
@@ -103,6 +81,30 @@ model Job {
 
   @@map("jobs")
 }
+
+// Hola compadre, este codigo solo yo y dios sabemos que hace
+// pero si funciona no lo toques, gracias
+
+// btw, el fileUrl es opcional, pero si tienes que escalarlo tienes que usar multer 
+
+model Resume {
+  id            String    @id @default(uuid())
+  studentId     String
+  fileUrl       String?
+  pdf           Bytes 
+  extractedData Json?     
+  parsedSkills  Json?     
+  parsedExperience Json?  
+  parsedEducation Json?   
+  uploadedAt    DateTime  @default(now())
+  processed     Boolean   @default(false)
+  
+
+  student       Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("resumes")
+}
+
 
 model JobMatch {
   id                String    @id @default(uuid())

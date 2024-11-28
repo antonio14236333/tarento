@@ -19,37 +19,37 @@ export const authOptions = {
         if (!credentials) return null;
 
         try {
-          
-          const user = await prisma.student.findUnique({
-            where: {
-              email: credentials.email,
-            },
-          });
-
-          if (!user) {
-            return null;
-          }
-
           // Esto en algun punto alguien tendra que cambiarlo por un hash y no sere yo
           // se debe usar bcrypt para comparar pero la contraseña debe ser hasheada
           // good look kiddo
-          const isPasswordValid = (
-            credentials.password ==
-            user.passwordHash
-          );
+          
+          const student = await prisma.student.findUnique({
+            where: { email: credentials.email },
+          });
 
-          if (!isPasswordValid) {
-            console.log('Useder:', user);
-            return null;
+          if (student && credentials.password === student.passwordHash) {
+            return {
+              id: student.id,
+              email: student.email,
+              name: student.fullName,
+              role: 'student'
+            };
           }
 
-          
-          return {
-            id: user.id,
-            email: user.email,
-            name: user.fullName,
-            role: "student",
-          };
+          const employer = await prisma.employer.findUnique({
+            where: { email: credentials.email },
+          });
+
+          if (employer && credentials.password === employer.passwordHash) {
+            return {
+              id: employer.id,
+              email: employer.email,
+              name: employer.companyName,
+              role: 'employer'
+            };
+          }
+
+          return null;
         } catch (error) {
           console.error('Error during authentication:', error);
           return null;
