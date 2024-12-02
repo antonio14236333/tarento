@@ -6,13 +6,6 @@ export default function RegisterPage() {
     fullName: '',
     email: '',
     passwordHash: '',
-    educationLevel: '',
-    careerStatus: '',
-    skills: null, 
-    experience: null, 
-    education: null, 
-    location: '',
-    profileStatus: 'INCOMPLETE',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -47,52 +40,64 @@ export default function RegisterPage() {
   return (
     <section className="section">
       <div className="container">
-        <h1 className="title">Student Registration</h1>
-        <form onSubmit={handleSubmit}>
-          <div className="field">
-            <label className="label">Full Name</label>
-            <div className="control">
-              <input
-                className="input"
-                type="text"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleChange}
-                placeholder="Enter your full name"
-              />
+        <div className="columns is-centered">
+          <div className="column is-6">
+            <div className="box">
+              <h1 className="title has-text-centered mb-6">Student Registration</h1>
+
+              <form onSubmit={handleSubmit}>
+                <div className="field">
+                  <label className="label">Full Name</label>
+                  <div className="control">
+                    <input
+                      className="input"
+                      type="text"
+                      name="fullName"
+                      value={formData.fullName}
+                      onChange={handleChange}
+                      placeholder="Enter your full name"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="field">
+                  <label className="label">Email</label>
+                  <div className="control">
+                    <input
+                      className="input"
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder="Enter your email"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="field">
+                  <label className="label">Password</label>
+                  <div className="control">
+                    <input
+                      className="input"
+                      type="password"
+                      name="passwordHash"
+                      value={formData.passwordHash}
+                      onChange={handleChange}
+                      placeholder="Enter your password"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="field mt-5">
+                  <button className="button is-primary is-fullwidth">Register</button>
+                </div>
+              </form>
             </div>
           </div>
-          <div className="field">
-            <label className="label">Email</label>
-            <div className="control">
-              <input
-                className="input"
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="Enter your email"
-              />
-            </div>
-          </div>
-          <div className="field">
-            <label className="label">Password</label>
-            <div className="control">
-              <input
-                className="input"
-                type="password"
-                name="passwordHash"
-                value={formData.passwordHash}
-                onChange={handleChange}
-                placeholder="Enter your password"
-              />
-            </div>
-          </div>
-          {/* Agrega otros campos aquí */}
-          <div className="field">
-            <button className="button is-primary">Register</button>
-          </div>
-        </form>
+        </div>
       </div>
     </section>
   );

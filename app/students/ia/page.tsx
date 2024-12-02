@@ -1,104 +1,48 @@
 'use client';
 
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { Mic, Square } from 'lucide-react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { Mic, Square, Play } from 'lucide-react';
+import 'bulma/css/bulma.min.css';
+import { compare } from 'bcryptjs';
 
-
-
-// const profile: StudentProfile = {
-//   fullName,
-//   educationLevel,
-//   careerStatus,
-//   skills: skills || [],
-//   experience: experience || [],
-//   education: education || [],
-//   location
-// };
-
-interface StudentProfile {
-  fullName?: string;
-  educationLevel?: string;
-  careerStatus?: string;
-  skills?: string[];
-  experience?: {
-    company: string;
-    position: string;
-    duration: string;
-    description: string;
-  }[];
-  education?: {
-    institution: string;
-    degree: string;
-    field: string;
-    graduationYear: string;
-  }[];
-  location?: string;
+interface StudentResponse {
+  question: string;
+  audioBlob: Blob;
+  transcription?: string;
 }
 
-export default function AnimatedVoiceChat() {
+const preguntasPerfilEstudiante = [
+  "Hola, soy Kero, voy a hacerte algunas preguntas para crear tu perfil. ¿Me podrías decir tu nombre completo?",
+  "¿Cuál es tu dirección de correo electrónico?",
+  "¿Cuál es tu nivel de educación? (Por ejemplo, secundaria, licenciatura, maestría), indica fecha de graduacion",
+  "¿Cuál es tu situación profesional actual? (Por ejemplo, empleado, desempleado, estudiante)",
+  "Enumera tus habilidades y para cada una indica tu nivel de dominio. (Por ejemplo, Python - Avanzado, Excel - Intermedio)",
+  "¿Tienes experiencia laboral previa?, ",
+  "¿Cuál es tu historial educativo?",
+  "¿Dónde te encuentras ubicado actualmente?",
+];
+
+const OrbitControls = () => {
+  const [orbitState, setOrbitState] = useState('normal');
   const [isRecording, setIsRecording] = useState(false);
-  const [response, setResponse] = useState('');
-  const [displayedResponse, setDisplayedResponse] = useState('');
-  const [transcription, setTranscription] = useState('');
-  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
-  const [animationState, setAnimationState] = useState('normal');
-  var [profile, setProfile] = useState<StudentProfile>({});
-  const [isFirstMessage, setIsFirstMessage] = useState(true);
+  const [error, setError] = useState('');
   const [hasStarted, setHasStarted] = useState(false);
-  
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  let historical: string = "";
+  const [responses, setResponses] = useState<StudentResponse[]>([]);
+  const [transcription, setTranscription] = useState('');
+  const [isComplete, setIsComplete] = useState(false);
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-  const typingSpeedRef = useRef(50);
-  const router = useRouter();
-  
-
-  async function fetchProfile() {
-    const response = await fetch(`/api/user`);
-    profile = await response.json();
-  }
-
-
-  // Efecto de escritura 
-  useEffect(() => {
-    if (response && !isTyping) {
-      setIsTyping(true);
-      setDisplayedResponse('');
-      let currentIndex = 0;
-      
-      const typingInterval = setInterval(() => {
-        if (currentIndex < response.length) {
-          setDisplayedResponse(prev => prev + response[currentIndex]);
-          currentIndex++;
-        } else {
-          clearInterval(typingInterval);
-          setIsTyping(false);
-        }
-      }, typingSpeedRef.current);
-
-      return () => clearInterval(typingInterval);
-    }
-  }, [response]);
-
-  const startInitialInteraction =  () => {
-    setHasStarted(true);
-    // const welcomeMessage = '¡Bienvenido! Soy Kira, tu asistente virtual inteligente. Estoy aquí para ayudarte y conversar contigo para realizar tu perfil como talento. ¿Estás listo para comenzar?';
-    
-    // playTTS(welcomeMessage);
-    // // Pueden criticar mis metodos, pero no mi estilo
-    // // El PRI robo mas
-    // setTimeout(() => {
-    //   setResponse(welcomeMessage);
-    // }, 3500);
-   
-    // De tu envidia alimento mi ego jiji
-  };
 
   const playTTS = async (text: string) => {
+    
     try {
+      
+      setOrbitState('talking');
+
       const response = await fetch('/api/tts', {
         method: 'POST',
         headers: {
@@ -106,39 +50,35 @@ export default function AnimatedVoiceChat() {
         },
         body: JSON.stringify({ text }),
       });
-  
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Error en la síntesis de voz');
+        throw new Error('Error en la síntesis de voz');
       }
-  
+
       const arrayBuffer = await response.arrayBuffer();
       const audioBlob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
       const audioUrl = URL.createObjectURL(audioBlob);
       const audio = new Audio(audioUrl);
       
       await new Promise((resolve, reject) => {
-        audio.onended = resolve;
+        audio.onended = () => {
+          setOrbitState('normal');
+          resolve(true);
+        };
         audio.onerror = reject;
         audio.play().catch(reject);
       });
-  
+
       URL.revokeObjectURL(audioUrl);
     } catch (err) {
-      console.log('Error en la síntesis de voz:', err);
+      console.error('Error en la síntesis de voz:', err);
+      setOrbitState('normal');
     }
   };
 
   const startRecording = useCallback(async () => {
-    if (!hasStarted) {
-      startInitialInteraction();
-      return;
-    }
-
     try {
       setError('');
-      setResponse('');
-      setDisplayedResponse('');
       setTranscription('');
       
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -157,163 +97,236 @@ export default function AnimatedVoiceChat() {
 
       recorder.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        const mp3Blob = new Blob([audioBlob], { type: 'audio/mp3' });
-        await processAudio(mp3Blob);
+        await processAudio(audioBlob);
         stream.getTracks().forEach(track => track.stop());
       };
 
       recorder.start();
       setIsRecording(true);
+      setOrbitState('recording');
     } catch (err) {
       setError('Error al acceder al micrófono. Por favor, verifica los permisos.');
     }
-  }, [hasStarted]);
+  }, []);
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+      setOrbitState('normal');
     }
   }, [isRecording]);
+
   const processAudio = async (recordedAudio: Blob) => {
     try {
       setIsLoading(true);
       setError('');
-
+  
+      const audioFile = new File([recordedAudio], 'recording.wav', {
+        type: 'audio/wav'
+      });
+  
       const formData = new FormData();
-      fetchProfile();
-      formData.append('audio', recordedAudio);
-      formData.append('profile', JSON.stringify(profile));
-      formData.append('isFirstMessage', String(isFirstMessage));
-      
-
-      const response = await fetch('/api/speech/', {
+      formData.append('audio_file', audioFile);
+  
+      const response = await fetch('/api/stt', {
         method: 'POST',
         body: formData
       });
-
+  
       if (!response.ok) {
-        throw new Error('Error en el servidor');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error en el servidor');
       }
-
+  
       const data = await response.json();
-      
+  
       if (data.error) {
         throw new Error(data.error);
       }
-      
-      if(data.response == "Tu perfil ha sido actualizado exitosamente. En unos segnudos te mostraremos el mejor trabajo para ti."){
-
-
-        playTTS(data.response);
-
-        
-
-        setTimeout(() => {
-          setResponse(data.response);
-        }, 3500);
-
-        router.push('/students/job-search');
-
-      
-      } else {
-
-        setTranscription(data.transcription);
-        setResponse(data.response);
-        setIsFirstMessage(false);
   
+      setTranscription(data.text);
+  
+      // Guardar la respuesta actual
+      const newResponse: StudentResponse = {
+        question: preguntasPerfilEstudiante[currentQuestionIndex],
+        audioBlob: recordedAudio,
+        transcription: data.text
+      };
+
+      historical = historical + ' ' + data.text;
+
+      console.log('Historial:', data.text);
+  
+      setResponses(prev => [...prev, newResponse]);
+
+      console.log(currentQuestionIndex, newResponse);
+  
+      // Verificar si es la última pregunta
+      if (currentQuestionIndex === preguntasPerfilEstudiante.length - 1) {
+        setIsComplete(true);
+
+        const conversation = historical;
+
+        const response = await fetch('/api/speech', {
+          method: 'POST',
+          body: conversation,
+        });
+
+        console.log('response:', response);
+        console.log('historical:', historical);
         
-        if (data.updatedProfile) {
-          setProfile(data.updatedProfile);
+  
+        if (!response.ok) {
+          throw new Error('Error en el servidor');
         }
-  
-  
+
+        const data = await response.json();
+
+        console.log('Perfil del estudiante:', data);
+
+        try {
+            const updateStudentResponse: Response = await fetch('/api/students', {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: data,
+            });
+            console.log('updateStudent:', updateStudentResponse);
+            if (updateStudentResponse.ok) {
+              const updatedUser = await updateStudentResponse.json();
+              console.log('Profile updated successfully:', updatedUser);
+   
+            } else {
+              const error = await updateStudentResponse.json();
+              console.error('Failed to update profile:', error);
+            }
+          } catch (error) {
+            console.error('Error:', error);
+          }
         
-        const audioBuffer = new Uint8Array(data.audioBuffer);
-        const audioBlob = new Blob([audioBuffer], { type: 'audio/mp3' });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        const audio = new Audio(audioUrl);
-        await audio.play();
+        
+
+        await playTTS("Gracias por completar el cuestionario, presiona ver perfil para ver tus respuestas. Espera un momento por favor.");
+
+        handleComplete();
+      } else {
+        const nextIndex = currentQuestionIndex + 1;
+        setCurrentQuestionIndex(nextIndex);
+        setTimeout(() => {
+          const nextQuestion = preguntasPerfilEstudiante[nextIndex];
+          playTTS(nextQuestion);
+        }, 1000);
       }
-
   
-
     } catch (error) {
+      console.error('Error en processAudio:', error);
       setError(error instanceof Error ? error.message : 'Error al procesar la solicitud');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const renderProfile = () => {
-    if (Object.keys(profile).length === 0) return null;
-    return (
-      <div className="mt-4 p-4 bg-gray-700 rounded-lg text-white max-w-2xl w-full">
-        <h2 className="font-semibold mb-2">Perfil actual:</h2>
-        <pre className="whitespace-pre-wrap">
-          {JSON.stringify(profile, null, 2)}
-        </pre>
-      </div>
-    );
+  const playNextQuestion = async () => {
+    const question = preguntasPerfilEstudiante[currentQuestionIndex];
+    await playTTS(question);
+  };
+
+  const handleStart = async () => {
+    setHasStarted(true);
+    await playNextQuestion();
+  };
+
+  const handleComplete = () => {
+    console.log('Respuestas completas:', responses);
   };
 
   return (
-    <div className="bg-black min-h-screen flex flex-col items-center justify-center p-4">
-      <div className="parent mb-8">
-        {[...Array(5)].map((_, index) => (
-          <div key={index} className={`circle ${animationState}`} style={{
-            animationDelay: `${-index * 0.8}s`
-          }} />
-        ))}
+    <section className="section has-background-dark">
+      <div className="container">
+        <div className="columns is-centered">
+          <div className="column is-8">
+            <div className="box has-background-black-bis">
+              {/* Orbit Animation */}
+              <div className="parent mb-5">
+                {[...Array(5)].map((_, index) => (
+                  <div 
+                    key={index} 
+                    className={`circle ${orbitState}`} 
+                    style={{
+                      animationDelay: `${-index * 0.8}s`
+                    }} 
+                  />
+                ))}
+              </div>
+
+              {hasStarted && !isComplete && (
+                <div className="box has-background-info-dark has-text-white mb-5">
+                  <h2 className="title is-4 has-text-white">
+                    Pregunta {currentQuestionIndex + 1} de {preguntasPerfilEstudiante.length}
+                  </h2>
+                  <p className="subtitle has-text-white">
+                    {preguntasPerfilEstudiante[currentQuestionIndex]}
+                  </p>
+                  {transcription && (
+                    <div className="mt-4 p-4 has-background-black-ter">
+                      <p className="is-family-monospace">{transcription}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {isComplete && (
+                <div className="box has-background-success-dark has-text-white mb-5">
+                  <h2 className="title is-4 has-text-white">
+                    ¡Cuestionario Completado!
+                  </h2>
+                  <p className="subtitle has-text-white">
+                    Gracias por completar todas las preguntas.
+                  </p>
+                </div>
+              )}
+
+              {error && (
+                <div className="notification is-danger">
+                  {error}
+                </div>
+              )}
+
+              <div className="buttons is-centered mb-5">
+                {!hasStarted ? (
+                  <button
+                    onClick={handleStart}
+                    className="button is-primary is-large has-text-weight-bold"
+                  >
+                    Comenzar Cuestionario
+                  </button>
+                ) : !isComplete && (
+                  <button
+                    onClick={isRecording ? stopRecording : startRecording}
+                    disabled={isLoading}
+                    className={`button ${isRecording ? 'is-danger is-outlined' : 'is-danger'} has-text-weight-bold`}
+                  >
+                    <span className="icon">
+                      {isRecording ? <Square /> : <Mic />}
+                    </span>
+                    <span>{isRecording ? 'Detener Grabación' : 'Grabar Respuesta'}</span>
+                  </button>
+                )}
+              </div>
+
+              {hasStarted && !isComplete && (
+                <progress 
+                  className="progress is-info" 
+                  value={currentQuestionIndex} 
+                  max={preguntasPerfilEstudiante.length - 1}
+                />
+              )}
+            </div>
+          </div>
+        </div>
       </div>
-
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 max-w-2xl w-full">
-          <p>{error}</p>
-        </div>
-      )}
-      
-      <div className="flex gap-4 mb-8">
-        <button
-          onClick={isRecording ? stopRecording : startRecording}
-          disabled={isLoading}
-          className={`flex items-center gap-2 px-6 py-3 rounded-md text-white ${
-            isLoading 
-              ? 'bg-gray-400 cursor-not-allowed' 
-              : isRecording 
-                ? 'bg-red-500 hover:bg-red-600' 
-                : 'bg-blue-500 hover:bg-blue-600'
-          }`}
-        >
-          {isRecording ? <Square className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-          {isLoading 
-            ? 'Procesando...' 
-            : isRecording 
-              ? 'Detener grabación' 
-              : hasStarted 
-                ? 'Presionar para hablar' 
-                : 'Comenzar'}
-        </button>
-      </div>
-
-      {renderProfile()}
-
-      {transcription && (
-        <div className="mt-4 p-4 bg-gray-800 rounded-lg text-white max-w-2xl w-full">
-          <h2 className="font-semibold mb-2">Tu mensaje:</h2>
-          <p>{transcription}</p>
-        </div>
-      )}
-
-      {response && (
-        <div className="mt-4 p-4 bg-blue-900 rounded-lg text-white max-w-2xl w-full">
-          <h2 className="font-semibold mb-2">Respuesta:</h2>
-          <p>
-            {displayedResponse}
-            {isTyping && <span className="animate-pulse">▋</span>}
-          </p>
-        </div>
-      )}
 
       <style jsx>{`
         .parent {
@@ -323,6 +336,7 @@ export default function AnimatedVoiceChat() {
           display: flex;
           justify-content: center;
           align-items: center;
+          margin: 0 auto;
         }
 
         .circle {
@@ -333,11 +347,12 @@ export default function AnimatedVoiceChat() {
           position: absolute;
           animation: spin 4s infinite linear;
           offset-path: circle(100px at center);
-          transition: offset-path 0.5s ease-in-out;
+          transition: all 0.5s ease-in-out;
         }
 
         .circle.talking {
           offset-path: circle(150px at center);
+          background-color: #3fa9f5a8;
         }
 
         .circle.recording {
@@ -353,7 +368,21 @@ export default function AnimatedVoiceChat() {
             offset-distance: 100%;
           }
         }
+
+        @media screen and (max-width: 768px) {
+          .parent {
+            width: 300px;
+            height: 300px;
+          }
+          
+          .circle {
+            width: 40px;
+            height: 40px;
+          }
+        }
       `}</style>
-    </div>
+    </section>
   );
-}
+};
+
+export default OrbitControls;

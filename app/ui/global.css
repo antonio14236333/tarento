@@ -16,6 +16,9 @@ input[type='number']::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+.is-primary{
+  color: white;
+}
 
 :root {
   --bulma-primary-h: 218deg;
@@ -34,4 +37,9 @@ input[type='number']::-webkit-outer-spin-button {
   --bulma-family-primary: Roboto;
   --bulma-navbar-height: 6rem;
   --bulma-navbar-item-img-max-height: 6rem;
+}
+
+
+.heading{
+  color: black;
 }

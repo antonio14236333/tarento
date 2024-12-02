@@ -73,8 +73,6 @@ export async function GET(request: Request) {
 
     const jobs = await prisma.job.findMany();
 
-    console.log(profileData);
-    console.log(jobs);
 
     const ranking = await openai.chat.completions.create({
         model: 'gpt-4o',
@@ -90,13 +88,10 @@ export async function GET(request: Request) {
         throw new Error('OpenAI response content is null');
       }
       const resultRanking = JSON.parse(content); 
+      
+      console.log(resultRanking);
     
-    return new NextResponse(resultRanking, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    return NextResponse.json(resultRanking);
     
   } catch (error) {
     console.error('Error processing profile:', error);

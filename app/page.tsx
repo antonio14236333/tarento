@@ -1,70 +1,105 @@
-// import AcmeLogo from '@/app/ui/acme-logo';
-// import { ArrowRightIcon } from '@heroicons/react/24/outline';
-// import Link from 'next/link';
-// import styles from '@/app/ui/home.module.css';
-// import Image from 'next/image';
-
-// export default function Page() {
-//   return (
-//     <main className="flex min-h-screen flex-col p-6">
-//       <div className={styles.shape} />
-//       <div className="flex h-20 shrink-0 items-end rounded-lg bg-blue-500 p-4 md:h-52">
-//         <AcmeLogo />
-//       </div>
-//       <div className={`mt-4 flex grow flex-col gap-4 md:flex-row`}>
-//         <div className="flex flex-col justify-center gap-6 rounded-lg bg-gray-50 px-6 py-10 md:w-2/5 md:px-20">
-//           <p className={`text-xl text-gray-800 md:text-3xl md:leading-normal`}>
-//             <strong>Welcome to Acme.</strong> This is the example for the{' '}
-//             <a href="https://nextjs.org/learn/" className="text-blue-500">
-//               Next.js Learn Course
-//             </a>
-//             , brought to you by Vercel.
-//           </p>
-//           <div
-//   className="relative w-0 h-0 border-l-[15px] border-r-[15px] border-b-[26px] border-l-transparent border-r-transparent border-b-black"
-// />
-//           <Link
-//             href="/login"
-//             className="flex items-center gap-5 self-start rounded-lg bg-blue-500 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-400 md:text-base"
-//           >
-//             <span>Log in</span> <ArrowRightIcon className="w-5 md:w-6" />
-//           </Link>
-//         </div>
-//         <div className="flex items-center justify-center p-6 md:w-3/5 md:px-28 md:py-12">
-//           {/* Add Hero Images Here */}
-//           <Image
-//         src="/hero-desktop.png"
-//         width={1000}
-//         height={760}
-//         className="hidden md:block"
-//         alt="Screenshots of the dashboard project showing desktop version"
-//       />
-//       <Image
-//         src="/hero-mobile.png"
-//         width={560}
-//         height={620}
-//         className="block md:hidden  "
-//         alt="Screenshots of the dashboard project showing desktop version"
-//       />
-//         </div>
-//       </div>
-//     </main>
-//   );
-// }
-
 export default function LandingPage() {
   return (
-    <section className="hero is-info is-fullheight">
+    <div className="hero is-fullheight" style={{
+      background: 'linear-gradient(135deg, hsl(var(--bulma-info-h), var(--bulma-info-s), var(--bulma-info-l)) 0%, hsl(var(--bulma-link-h), var(--bulma-link-s), var(--bulma-link-l)) 100%)'
+    }}>
       <div className="hero-body">
         <div className="container">
-          <h1 className="title">Welcome to the Talent Platform</h1>
-          <h2 className="subtitle">Connect with the best candidates and job opportunities</h2>
-          <div className="buttons">
-            <button className="button is-link">Find Jobs</button>
-            <button className="button is-info">Search Candidates</button>
+          <div className="columns is-vcentered">
+            {/* Left Column - Text Content */}
+            <div className="column is-6 has-text-white">
+              <div className="mb-4">
+                <span style={{ fontSize: '3rem' }}>🎯</span>
+              </div>
+              
+              <h1 className="title is-1 has-text-white mb-6">
+                Tu Entrevista Inteligente
+              </h1>
+              
+              <h2 className="subtitle is-4 has-text-white-bis mb-6">
+                Practica tus entrevistas con IA y encuentra el trabajo perfecto para ti
+              </h2>
+
+              <div className="buttons mb-6">
+                <button className="button is-primary is-large is-rounded has-shadow">
+                  <span className="mr-2">🎤</span> Comenzar Entrevista
+                </button>
+                <button className="button is-light is-large is-rounded has-shadow">
+                  <span className="mr-2">💼</span> Ver Empleos
+                </button>
+              </div>
+
+              {/* Stats Section */}
+              <div className="is-hidden-mobile">
+                <div className="level has-text-centered mt-6 has-background-white-ter p-4" style={{ borderRadius: '1rem' }}>
+                  <div className="level-item">
+                    <div>
+                      <p className="heading">Empresas</p>
+                      <p className="title">500+</p>
+                    </div>
+                  </div>
+                  <div className="level-item">
+                    <div>
+                      <p className="heading">Entrevistas</p>
+                      <p className="title">10k+</p>
+                    </div>
+                  </div>
+                  <div className="level-item">
+                    <div>
+                      <p className="heading">Empleos</p>
+                      <p className="title">2k+</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          
+          </div>
+
+          {/* Features Section */}
+          <div className="columns is-multiline mt-6">
+            <div className="column is-4">
+              <div className="box has-background-white-ter has-text-centered p-6" 
+                   style={{ height: '100%', borderRadius: '1rem' }}>
+                <span style={{ fontSize: '3.5rem' }}>🎤</span>
+                <h3 className="title is-4 mt-4">Entrevistas por Voz</h3>
+                <p>Practica con nuestro asistente AI usando reconocimiento de voz natural</p>
+              </div>
+            </div>
+
+            <div className="column is-4">
+              <div className="box has-background-white-ter has-text-centered p-6" 
+                   style={{ height: '100%', borderRadius: '1rem' }}>
+                <span style={{ fontSize: '3.5rem' }}>🤖</span>
+                <h3 className="title is-4 mt-4">IA Avanzada</h3>
+                <p>Algoritmo inteligente que encuentra los trabajos ideales para tu perfil</p>
+              </div>
+            </div>
+
+            <div className="column is-4">
+              <div className="box has-background-white-ter has-text-centered p-6" 
+                   style={{ height: '100%', borderRadius: '1rem' }}>
+                <span style={{ fontSize: '3.5rem' }}>📊</span>
+                <h3 className="title is-4 mt-4">Feedback Instantáneo</h3>
+                <p>Recibe retroalimentación detallada para mejorar tus entrevistas</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Trust Indicators */}
+          <div className="has-text-centered mt-6 has-text-white">
+            <p className="is-size-4 mb-4">Confían en nosotros</p>
+            <div className="level is-mobile">
+              <div className="level-item">⭐⭐⭐⭐⭐</div>
+              <div className="level-item">|</div>
+              <div className="level-item">10,000+ Entrevistas</div>
+              <div className="level-item">|</div>
+              <div className="level-item">500+ Empresas</div>
+            </div>
           </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 }
